@@ -31,17 +31,17 @@ ContainerOfLiquid::~ContainerOfLiquid()
 	//delete[] test;
 }
 
-void main()
+void hashTableTest()
 {
 	int size = 200;
 	HashTable<ContainerOfLiquid, char*> table(size);
 
-	table.add(ContainerOfLiquid("H20"), "Water");
+	table.add(ContainerOfLiquid("H2O"), "Water");
 	table.add(ContainerOfLiquid("C3H5(OH)3"), "Glycerol");
 	table.add(ContainerOfLiquid("CH3OH"), "Methanol");
 	table.add(ContainerOfLiquid("C2H5OH"), "Ethanol");
 
-	cout << table.get(ContainerOfLiquid("H20")) << endl;
+	cout << table.get(ContainerOfLiquid("H2O")) << endl;
 	cout << table.get(ContainerOfLiquid("C3H5(OH)3")) << endl;
 	cout << table.get(ContainerOfLiquid("CH3OH")) << endl;
 	cout << table.get(ContainerOfLiquid("C2H5OH")) << endl;
