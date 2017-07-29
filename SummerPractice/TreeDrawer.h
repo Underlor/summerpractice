@@ -1,20 +1,25 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "HashTable.h"
-
 using namespace sf;
 
 template<class V>
 class TreeDrawer
 {
 public:
-	TreeDrawer(Node<V>* node) : root(node) {}
+	TreeDrawer(Node<V>* node) : root(node), index(0) {}
 	~TreeDrawer();
 
 	void run();
 private:
 	Node<V>* root;
+
+	Font* font;
+	//Drawable** shapes;
 	CircleShape** shapes;
+	RectangleShape** rects;
+	Text** texts;
+
+	int index;
 
 	int count(Node<V>*);
 	void createNodeShape(Node<V>*);
@@ -28,12 +33,18 @@ TreeDrawer<V>::~TreeDrawer()
 template<class V>
 void TreeDrawer<V>::run()
 {
-	RenderWindow window(VideoMode(600, 800), "SFML works!");
+	RenderWindow window(VideoMode(1024, 800), "SFML works!");
 	window.setFramerateLimit(60);
+
+	font = new Font();
+	if (!font->loadFromFile("arial.ttf"))
+		return;
+
 	int size = count(root);
+	//shapes = new Drawable*[size];
 	shapes = new CircleShape*[size];
-	for (size_t i = 0; i < size; i++)
-		shapes[i] = new CircleShape();
+	rects = new RectangleShape*[size];
+	texts = new Text*[size];
 
 	createNodeShape(root);
 
@@ -48,8 +59,16 @@ void TreeDrawer<V>::run()
 
 		window.clear();
 
-		for (size_t i = 0; i <= root->height; i++)
-			window.draw(*(shapes[i]));
+		for (size_t i = 0; i < index; i++)
+		{
+			//Drawable* shape = (shapes[i]);
+
+			//if(shape)
+			//	window.draw(*shape);
+			window.draw(*shapes[i]);
+			window.draw(*rects[i]);
+			window.draw(*texts[i]);
+		}
 
 		window.display();
 	}
@@ -68,12 +87,58 @@ void TreeDrawer<V>::createNodeShape(Node<V>* node)
 	if (!node) return;
 
 	createNodeShape(node->left);
+
 	CircleShape* shape = new CircleShape(20);
 	shape->setFillColor(Color::White);
-	//shape->setOrigin(shape->getRadius(), shape->getRadius());
-	shape->setPosition(node->key * 20/* * (shape->getRadius() + 4)*/, 400);
-	//shape->setPosition(20, 20);
+	shape->setOrigin(shape->getRadius(), shape->getRadius());
+	shape->setPosition(index * shape->getRadius() * 2 + shape->getRadius(), 400 - node->height * shape->getRadius() * 3 + 40);
 
-	shapes[node->key] = shape;
+	Text* text = new Text(to_string(node->key), *font, 15);
+	text->setFillColor(Color::Black);
+	text->setOrigin(text->getLocalBounds().width / 2, text->getLocalBounds().height / 2);
+	text->setPosition(shape->getPosition());
+
+	//shapes[index++] = shape;
+	//shapes[index++] = text;
+	shapes[index] = shape;
+	texts[index] = text;
+
+	if (node->left)
+	{
+		float disx = (index * shape->getRadius() * 2 + shape->getRadius()) - ((index + 1) * shape->getRadius() * 2 + shape->getRadius());
+		float disy = (400 - node->height * shape->getRadius() * 2 + 40) - (400 - node->left->height * shape->getRadius() * 2 + 40);
+
+		float dis = sqrt((disx * disx) + (disy * disy));
+
+		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
+		rect->setPosition(shape->getPosition());
+		rect->setRotation(45);
+
+		rects[index] = rect;
+	}
+	else if(node->right)
+	{
+		float disx = (index * shape->getRadius() * 2 + shape->getRadius()) - ((index + 1) * shape->getRadius() * 2 + shape->getRadius());
+		float disy = (400 - node->height * shape->getRadius() * 2 + 40) - (400 - node->right->height * shape->getRadius() * 2 + 40);
+
+		float dis = sqrt((disx * disx) + (disy * disy));
+
+		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
+		rect->setPosition(shape->getPosition());
+		rect->setRotation(-45);
+
+		rects[index] = rect;
+	}
+	else 
+	{
+		float dis = 0;
+
+		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
+		rect->setPosition(shape->getPosition());
+		rect->setRotation(45);
+
+		rects[index] = rect;
+	}
+	index++;
 	createNodeShape(node->right);
 }
