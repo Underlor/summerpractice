@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include "Bucket.h"
 
 template <class K, class V>

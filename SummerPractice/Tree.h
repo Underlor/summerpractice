@@ -1,13 +1,12 @@
-
 template <class V>
-class Node // структура для представления узлов дерева
+class Node 
 {
 public:
 	Node(int k, V v) : key(k), value(v), left(0), right(0), height(1) {}
 
 	int key;
 	V value;
-	unsigned char height;
+	unsigned int height;
 	Node<V> *left, *right;
 };
 
@@ -17,129 +16,154 @@ public:
 	Tree();
 	~Tree();
 
-	Node<V>* root;
-
-	void add(int key, V value)
+	void insert(int key, V value)
 	{
 		root = insert(root, key, value);
 	}
 
-	void del(int key)
+	void remove(int key)
 	{
 		root = remove(root, key);
 	}
 
-	void print()
+	Node<V>* getRoot()
 	{
-		print(root);
+		return root;
 	}
 private:
-	void print(Node<V>* p)
-	{
-		if (!p) return;
+	Node<V>* root;
 
-		print(p->left);
-		cout << p->value << " ";
-		print(p->right);
+	unsigned int getHeight(Node<V>* node)
+	{
+		return node ? node->height : 0;
 	}
 
-	unsigned char height(Node<V>* p)
+	int getBalanceFactor(Node<V>* node)
 	{
-		return p ? p->height : 0;
+		return getHeight(node->right) - getHeight(node->left);
 	}
 
-	int bfactor(Node<V>* p)
+	void fixHeight(Node<V>* node)
 	{
-		return height(p->right) - height(p->left);
+		unsigned int heightLeft = getHeight(node->left);
+		unsigned int heightRight = getHeight(node->right);
+
+		node->height = (heightLeft > heightRight ? heightLeft : heightRight) + 1;
 	}
 
-	void fixheight(Node<V>* p)
+	Node<V>* rotateRight(Node<V>* node) // правый поворот вокруг node
 	{
-		unsigned char hl = height(p->left);
-		unsigned char hr = height(p->right);
-		p->height = (hl > hr ? hl : hr) + 1;
+		Node<V>* temp = node->left;
+		node->left = temp->right;
+		temp->right = node;
+
+		fixHeight(node);
+		fixHeight(temp);
+
+		return temp;
 	}
 
-	Node<V>* rotateright(Node<V>* p) // правый поворот вокруг p
+	Node<V>* rotateLeft(Node<V>* node) // левый поворот вокруг node
 	{
-		Node<V>* q = p->left;
-		p->left = q->right;
-		q->right = p;
-		fixheight(p);
-		fixheight(q);
-		return q;
+		Node<V>* temp = node->right;
+		node->right = temp->left;
+		temp->left = node;
+
+		fixHeight(node);
+		fixHeight(temp);
+
+		return temp;
 	}
 
-	Node<V>* rotateleft(Node<V>* q) // левый поворот вокруг q
+	Node<V>* balance(Node<V>* node) // балансировка узла node
 	{
-		Node<V>* p = q->right;
-		q->right = p->left;
-		p->left = q;
-		fixheight(q);
-		fixheight(p);
-		return p;
-	}
+		fixHeight(node);
 
-	Node<V>* balance(Node<V>* p) // балансировка узла p
-	{
-		fixheight(p);
-		if (bfactor(p) == 2)
+		if (getBalanceFactor(node) == 2)
 		{
-			if (bfactor(p->right) < 0)
-				p->right = rotateright(p->right);
-			return rotateleft(p);
+			if (getBalanceFactor(node->right) < 0)
+			{
+				node->right = rotateRight(node->right);
+			}
+
+			return rotateLeft(node);
 		}
-		if (bfactor(p) == -2)
+		if (getBalanceFactor(node) == -2)
 		{
-			if (bfactor(p->left) > 0)
-				p->left = rotateleft(p->left);
-			return rotateright(p);
+			if (getBalanceFactor(node->left) > 0)
+			{
+				node->left = rotateLeft(node->left);
+			}
+
+			return rotateRight(node);
 		}
-		return p; // балансировка не нужна
+
+		return node; // балансировка не нужна
 	}
 
-	Node<V>* insert(Node<V>* p, int k, V value) // вставка ключа k в дерево с корнем p
+	Node<V>* insert(Node<V>* node, int key, V value) // вставка ключа key в дерево с корнем node
 	{
-		if (!p) return new Node<V>(k, value);
-		if (k < p->key)
-			p->left = insert(p->left, k, value);
+		if (!node)
+		{
+			return new Node<V>(key, value);
+		}
+
+		if (key < node->key)
+		{
+			node->left = insert(node->left, key, value);
+		}
 		else
-			p->right = insert(p->right, k, value);
-		return balance(p);
-	}
-
-	Node<V>* findmin(Node<V>* p) // поиск узла с минимальным ключом в дереве p 
-	{
-		return p->left ? findmin(p->left) : p;
-	}
-
-	Node<V>* removemin(Node<V>* p) // удаление узла с минимальным ключом из дерева p
-	{
-		if (p->left == 0)
-			return p->right;
-		p->left = removemin(p->left);
-		return balance(p);
-	}
-
-	Node<V>* remove(Node<V>* p, int k) // удаление ключа k из дерева p
-	{
-		if (!p) return 0;
-		if (k < p->key)
-			p->left = remove(p->left, k);
-		else if (k > p->key)
-			p->right = remove(p->right, k);
-		else //  k == p->key 
 		{
-			Node<V>* q = p->left;
-			Node<V>* r = p->right;
-			delete p;
+			node->right = insert(node->right, key, value);
+		}
+
+		return balance(node);
+	}
+
+	Node<V>* findMin(Node<V>* node) // поиск узла с минимальным ключом в дереве node 
+	{
+		return node->left ? findMin(node->left) : node;
+	}
+
+	Node<V>* removeMin(Node<V>* node) // удаление узла с минимальным ключом из дерева node
+	{
+		if (node->left == 0)
+		{
+			return node->right;
+		}
+
+		node->left = removeMin(node->left);
+		return balance(node);
+	}
+
+	Node<V>* remove(Node<V>* node, int k) // удаление ключа k из дерева node
+	{
+		if (!node)
+		{
+			return 0;
+		}
+
+		if (k < node->key)
+		{
+			node->left = remove(node->left, k);
+		}
+		else if (k > node->key)
+		{
+			node->right = remove(node->right, k);
+		}
+		else
+		{
+			Node<V>* q = node->left;
+			Node<V>* r = node->right;
+			delete node;
 			if (!r) return q;
-			Node<V>* min = findmin(r);
-			min->right = removemin(r);
+			Node<V>* min = findMin(r);
+			min->right = removeMin(r);
 			min->left = q;
 			return balance(min);
 		}
-		return balance(p);
+
+		return balance(node);
 	}
 };
 
