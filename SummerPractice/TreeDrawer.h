@@ -36,7 +36,7 @@ TreeDrawer<V>::~TreeDrawer()
 template<class V>
 void TreeDrawer<V>::run()
 {
-	RenderWindow window(VideoMode(1024, 800), "SUKA works!", Style::None | Style::Titlebar | Style::Close);
+	RenderWindow window(VideoMode(2048, 800), "TreeDrawer works!", Style::None | Style::Titlebar | Style::Close);
 	window.setFramerateLimit(60);
 
 	font = new Font();
