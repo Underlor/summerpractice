@@ -19,17 +19,13 @@ private:
 					
 	Font* font;
 	Bucket<int, Drawable*>* shapes;
-	//Drawable** shapes;
-	/*CircleShape** shapes;
-	RectangleShape** rects;
-	Text** texts;*/
 
 	int index;
 
 	int count(Node<V>*);
 	int getHeight(Node<V>*);
 	CircleShape* createNodeShape(Node<V>*, int = 0);
-	//void createNodeShapeV2(Node<V>*, int = 0, int = 0);
+
 };
 
 template<class V>
@@ -49,9 +45,6 @@ void TreeDrawer<V>::run()
 
 	int size = count(root);
 	shapes = new Bucket<int, Drawable*>();
-	/*shapes = new CircleShape*[size];
-	rects = new RectangleShape*[size];
-	texts = new Text*[size];*/
 
 	createNodeShape(root, getHeight(root));
 
@@ -93,7 +86,6 @@ int TreeDrawer<V>::getHeight(Node<V>* node)
 	if (!node) return 0;
 	return 1 + max(node->left->height, node->right->height);
 }
-
 
 template<class V>
 CircleShape* TreeDrawer<V>::createNodeShape(Node<V>* node, int height)

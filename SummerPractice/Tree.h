@@ -51,7 +51,7 @@ private:
 		node->height = (heightLeft > heightRight ? heightLeft : heightRight) + 1;
 	}
 
-	Node<V>* rotateRight(Node<V>* node) // правый поворот вокруг node
+	Node<V>* rotateRight(Node<V>* node)
 	{
 		Node<V>* temp = node->left;
 		node->left = temp->right;
@@ -63,7 +63,7 @@ private:
 		return temp;
 	}
 
-	Node<V>* rotateLeft(Node<V>* node) // левый поворот вокруг node
+	Node<V>* rotateLeft(Node<V>* node)
 	{
 		Node<V>* temp = node->right;
 		node->right = temp->left;
@@ -75,7 +75,7 @@ private:
 		return temp;
 	}
 
-	Node<V>* balance(Node<V>* node) // балансировка узла node
+	Node<V>* balance(Node<V>* node)
 	{
 		fixHeight(node);
 
@@ -98,10 +98,10 @@ private:
 			return rotateRight(node);
 		}
 
-		return node; // балансировка не нужна
+		return node;
 	}
 
-	Node<V>* insert(Node<V>* node, int key, V value) // вставка ключа key в дерево с корнем node
+	Node<V>* insert(Node<V>* node, int key, V value)
 	{
 		if (!node)
 		{
@@ -120,12 +120,12 @@ private:
 		return balance(node);
 	}
 
-	Node<V>* findMin(Node<V>* node) // поиск узла с минимальным ключом в дереве node 
+	Node<V>* findMin(Node<V>* node)
 	{
 		return node->left ? findMin(node->left) : node;
 	}
 
-	Node<V>* removeMin(Node<V>* node) // удаление узла с минимальным ключом из дерева node
+	Node<V>* removeMin(Node<V>* node)
 	{
 		if (node->left == 0)
 		{
@@ -136,7 +136,7 @@ private:
 		return balance(node);
 	}
 
-	Node<V>* remove(Node<V>* node, int k) // удаление ключа k из дерева node
+	Node<V>* remove(Node<V>* node, int k)
 	{
 		if (!node)
 		{
