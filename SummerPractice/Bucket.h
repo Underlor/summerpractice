@@ -11,6 +11,12 @@ public:
 	void add(K key, V Value);
 	bool remove(K key);
 	V get(const K& key);
+
+	Liquid<K, V>* getHead()
+	{
+		return Head;
+	}
+
 private:
 	Liquid<K, V>* Head;
 };

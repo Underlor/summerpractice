@@ -1,28 +1,35 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
+#include "Bucket.h"
+
+
 using namespace sf;
 
 template<class V>
 class TreeDrawer
 {
 public:
-	TreeDrawer(Node<V>* node) : root(node), index(0) {}
+	TreeDrawer(Node<V>* node) : root(node), index(1) {}
 	~TreeDrawer();
 
 	void run();
 private:
 	Node<V>* root;
-
+					
 	Font* font;
+	Bucket<int, Drawable*>* shapes;
 	//Drawable** shapes;
-	CircleShape** shapes;
+	/*CircleShape** shapes;
 	RectangleShape** rects;
-	Text** texts;
+	Text** texts;*/
 
 	int index;
 
 	int count(Node<V>*);
-	void createNodeShape(Node<V>*);
+	int getHeight(Node<V>*);
+	CircleShape* createNodeShape(Node<V>*, int = 0);
+	//void createNodeShapeV2(Node<V>*, int = 0, int = 0);
 };
 
 template<class V>
@@ -33,7 +40,7 @@ TreeDrawer<V>::~TreeDrawer()
 template<class V>
 void TreeDrawer<V>::run()
 {
-	RenderWindow window(VideoMode(1024, 800), "SFML works!");
+	RenderWindow window(VideoMode(1024, 800), "SUKA works!", Style::None | Style::Titlebar | Style::Close);
 	window.setFramerateLimit(60);
 
 	font = new Font();
@@ -41,12 +48,12 @@ void TreeDrawer<V>::run()
 		return;
 
 	int size = count(root);
-	//shapes = new Drawable*[size];
-	shapes = new CircleShape*[size];
+	shapes = new Bucket<int, Drawable*>();
+	/*shapes = new CircleShape*[size];
 	rects = new RectangleShape*[size];
-	texts = new Text*[size];
+	texts = new Text*[size];*/
 
-	createNodeShape(root);
+	createNodeShape(root, getHeight(root));
 
 	while (window.isOpen())
 	{
@@ -57,17 +64,16 @@ void TreeDrawer<V>::run()
 				window.close();
 		}
 
-		window.clear();
+		window.clear(Color::White);
 
-		for (size_t i = 0; i < index; i++)
+		Liquid<int, Drawable*>* temp = shapes->getHead();
+		while (temp->next != NULL)
 		{
-			//Drawable* shape = (shapes[i]);
+			Drawable* drawable = temp->value;
 
-			//if(shape)
-			//	window.draw(*shape);
-			window.draw(*shapes[i]);
-			window.draw(*rects[i]);
-			window.draw(*texts[i]);
+			window.draw(*drawable);
+
+			temp = temp->next;
 		}
 
 		window.display();
@@ -82,63 +88,59 @@ int TreeDrawer<V>::count(Node<V>* node)
 }
 
 template<class V>
-void TreeDrawer<V>::createNodeShape(Node<V>* node)
+int TreeDrawer<V>::getHeight(Node<V>* node)
 {
-	if (!node) return;
+	if (!node) return 0;
+	return 1 + max(node->left->height, node->right->height);
+}
 
-	createNodeShape(node->left);
+
+template<class V>
+CircleShape* TreeDrawer<V>::createNodeShape(Node<V>* node, int height)
+{
+	if (!node) return NULL;
+
+	CircleShape* left = createNodeShape(node->left, height - 1);
 
 	CircleShape* shape = new CircleShape(20);
-	shape->setFillColor(Color::White);
+	shape->setFillColor(Color::Black);
 	shape->setOrigin(shape->getRadius(), shape->getRadius());
-	shape->setPosition(index * shape->getRadius() * 2 + shape->getRadius(), 400 - node->height * shape->getRadius() * 3 + 40);
+	shape->setPosition(index * shape->getRadius() * 2 + shape->getRadius(), 400 - height * shape->getRadius() * 3 + 40);
 
 	Text* text = new Text(to_string(node->key), *font, 15);
-	text->setFillColor(Color::Black);
+	text->setFillColor(Color::White);
 	text->setOrigin(text->getLocalBounds().width / 2, text->getLocalBounds().height / 2);
 	text->setPosition(shape->getPosition());
 
-	//shapes[index++] = shape;
-	//shapes[index++] = text;
-	shapes[index] = shape;
-	texts[index] = text;
+	shapes->add(index, text);
+	shapes->add(index, shape);
 
-	if (node->left)
+	CircleShape* right = createNodeShape(node->right, height - 1);
+
+	Color lineColor = Color::Blue;
+
+	if (left != NULL)
 	{
-		float disx = (index * shape->getRadius() * 2 + shape->getRadius()) - ((index + 1) * shape->getRadius() * 2 + shape->getRadius());
-		float disy = (400 - node->height * shape->getRadius() * 2 + 40) - (400 - node->left->height * shape->getRadius() * 2 + 40);
+		VertexArray* line = new VertexArray(LinesStrip, 2);
+		(*line)[0].position = shape->getPosition();
+		(*line)[0].color = lineColor;
+		(*line)[1].position = left->getPosition();
+		(*line)[1].color = lineColor;
 
-		float dis = sqrt((disx * disx) + (disy * disy));
-
-		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
-		rect->setPosition(shape->getPosition());
-		rect->setRotation(45);
-
-		rects[index] = rect;
+		shapes->add(index, line);
 	}
-	else if(node->right)
+	if (right != NULL)
 	{
-		float disx = (index * shape->getRadius() * 2 + shape->getRadius()) - ((index + 1) * shape->getRadius() * 2 + shape->getRadius());
-		float disy = (400 - node->height * shape->getRadius() * 2 + 40) - (400 - node->right->height * shape->getRadius() * 2 + 40);
+		VertexArray* line = new VertexArray(LinesStrip, 2);
+		(*line)[0].position = shape->getPosition();
+		(*line)[0].color = lineColor;
+		(*line)[1].position = right->getPosition();
+		(*line)[1].color = lineColor;
 
-		float dis = sqrt((disx * disx) + (disy * disy));
-
-		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
-		rect->setPosition(shape->getPosition());
-		rect->setRotation(-45);
-
-		rects[index] = rect;
+		shapes->add(index, line);
 	}
-	else 
-	{
-		float dis = 0;
 
-		RectangleShape* rect = new RectangleShape(*new Vector2f(4, dis));
-		rect->setPosition(shape->getPosition());
-		rect->setRotation(45);
-
-		rects[index] = rect;
-	}
 	index++;
-	createNodeShape(node->right);
+
+	return shape;
 }
